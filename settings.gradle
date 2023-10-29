@@ -1,0 +1,3 @@
+rootProject.name = "android_wechat_qrcode"
+include ':wechat_qrcode'
+include ':app'

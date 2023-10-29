@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <RadioGroup
+        android:id="@+id/rg"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="10dp"
+        android:orientation="horizontal"
+        android:weightSum="2">
+
+        <RadioButton
+            android:id="@+id/rb_camera"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="@string/scan_qr_by_camera"
+            android:textSize="18sp" />
+
+        <RadioButton
+            android:id="@+id/rb_image"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="@string/scan_qr_by_image"
+            android:textSize="18sp" />
+
+    </RadioGroup>
+
+    <ImageView
+        android:id="@+id/iv"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/rg"
+        tools:ignore="ContentDescription" />
+
+    <SurfaceView
+        android:id="@+id/sv"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/rg" />
+
+</RelativeLayout>

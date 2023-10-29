@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">QR</string>
+    <string name="scan_qr_by_camera">Scan QR by Camera</string>
+    <string name="scan_qr_by_image">Scan QR by Image</string>
+</resources>
