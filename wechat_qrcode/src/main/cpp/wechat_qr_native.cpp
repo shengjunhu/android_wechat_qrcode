@@ -22,17 +22,17 @@ static void set_field_long(JNIEnv *env, jobject obj, const char *name, jlong val
     env->DeleteLocalRef(clazz);
 }
 
-static HANDLE_ID create(JNIEnv *env, jobject thiz, jstring model1, jstring proto1, jstring model2, jstring proto2) {
-    if (model1 && proto1 && model2 && proto2) {
-        const char* _model1 = env->GetStringUTFChars(model1, JNI_FALSE);
+static HANDLE_ID create(JNIEnv *env, jobject thiz, jstring proto1, jstring model1, jstring proto2, jstring model2) {
+    if (proto1 && model1 && proto2 && model2) {
         const char* _proto1 = env->GetStringUTFChars(proto1, JNI_FALSE);
-        const char* _model2 = env->GetStringUTFChars(model2, JNI_FALSE);
+        const char* _model1 = env->GetStringUTFChars(model1, JNI_FALSE);
         const char* _proto2 = env->GetStringUTFChars(proto2, JNI_FALSE);
-        auto* qr = new wechat_qr(_model1, _proto1, _model2, _proto2);
-        env->ReleaseStringUTFChars(model1, _model1);
+        const char* _model2 = env->GetStringUTFChars(model2, JNI_FALSE);
+        auto* qr = new wechat_qr(_proto1, _model1, _proto2, _model2);
         env->ReleaseStringUTFChars(proto1, _proto1);
-        env->ReleaseStringUTFChars(model2, _model2);
+        env->ReleaseStringUTFChars(model1, _model1);
         env->ReleaseStringUTFChars(proto2, _proto2);
+        env->ReleaseStringUTFChars(model2, _model2);
         auto id = reinterpret_cast<HANDLE_ID>(qr);
         set_field_long(env, thiz, HANDLE, id);
         return id;
@@ -42,7 +42,7 @@ static HANDLE_ID create(JNIEnv *env, jobject thiz, jstring model1, jstring proto
     }
 }
 
-static jint decode(JNIEnv *env, jobject thiz, HANDLE_ID id, jbyteArray img, jint width, jint height, jobject points, jobject codes) {
+static jint decode1(JNIEnv *env, jobject thiz, HANDLE_ID id, jbyteArray img, jint width, jint height, jint format, jobject points, jobject codes) {
     jint ret = ERROR_ARG;
     auto *qr = reinterpret_cast<wechat_qr *>(id);
     if (!qr) {
@@ -54,7 +54,7 @@ static jint decode(JNIEnv *env, jobject thiz, HANDLE_ID id, jbyteArray img, jint
         LOGE("decode: points is null.");
     } else {
         jbyte* _img = env->GetByteArrayElements(img, JNI_FALSE);
-        ret = qr-> decode((const uint8_t *)_img, width, height);
+        ret = qr-> decode((const uint8_t *)_img, width, height, format);
         env->ReleaseByteArrayElements(img, _img, JNI_ABORT);
         if (ret > 0) {
             // set points and codes
@@ -75,7 +75,7 @@ static jint decode(JNIEnv *env, jobject thiz, HANDLE_ID id, jbyteArray img, jint
     return ret;
 }
 
-static jint decode2(JNIEnv *env, jobject thiz, HANDLE_ID id, jobject img, jint width, jint height, jobject points, jobject codes) {
+static jint decode2(JNIEnv *env, jobject thiz, HANDLE_ID id, jobject img, jint width, jint height, jint format, jobject points, jobject codes) {
     jint ret = ERROR_ARG;
     auto *qr = reinterpret_cast<wechat_qr *>(id);
     if (!qr) {
@@ -87,7 +87,7 @@ static jint decode2(JNIEnv *env, jobject thiz, HANDLE_ID id, jobject img, jint w
         LOGE("decode: points is null.");
     } else {
         auto _img = (const uint8_t *)env->GetDirectBufferAddress(img);
-        ret = qr-> decode(_img, width, height);
+        ret = qr-> decode(_img, width, height, format);
         if (ret > 0) {
             // set points and codes
             std::vector<float> _points = qr->get_points();
@@ -121,8 +121,8 @@ static void destroy(JNIEnv *env, jobject thiz, HANDLE_ID id) {
 
 static const JNINativeMethod NATIVE_METHODS[] = {
         {"create",  "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)J",  (void *) create},
-        {"decode",  "(J[BIILjava/utilList;Ljava/utilList;)I",                                       (void *) decode},
-        {"decode2", "(JLjava/nio/ByteBuffer;IILjava/utilList;Ljava/utilList;)I",                    (void *) decode2},
+        {"decode1", "(J[BIIILjava/util/List;Ljava/util/List;)I",                                    (void *) decode1},
+        {"decode2", "(JLjava/nio/ByteBuffer;IIILjava/util/List;Ljava/util/List;)I",                 (void *) decode2},
         {"destroy", "(J)V",                                                                         (void *) destroy}
 };
 

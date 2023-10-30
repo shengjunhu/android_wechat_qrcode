@@ -12,7 +12,7 @@ ext {
     ]
 
     android = [
-            applicationId               : "com.hsj.sample",
+            applicationId               : "android.wechat.qrcode.demo",
             compileSdkVersion           : 29,
             buildToolsVersion           : "29.0.3",
             minSdkVersion               : 21,
