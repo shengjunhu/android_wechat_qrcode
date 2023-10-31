@@ -14,23 +14,14 @@ if(LOG_SWITCH)
     add_definitions(-DLOG_SWITCH)
 endif(LOG_SWITCH)
 
-# libiconv-1.14
-#add_library(iconv SHARED IMPORTED)
-#set_target_properties(iconv PROPERTIES IMPORTED_LOCATION
-#        ${CMAKE_CURRENT_SOURCE_DIR}/iconv/lib/${ANDROID_ABI}/libiconv.so)
-
 # opencv-4.8.0
-#set(OpenCV_DIR ${CMAKE_CURRENT_SOURCE_DIR}/opencv/sdk/native/jni)
-#find_package(OpenCV REQUIRED opencv_core opencv_imgproc opencv_objdetect opencv_dnn)
-add_library(opencv SHARED IMPORTED)
-set_target_properties(opencv PROPERTIES IMPORTED_LOCATION
-        ${CMAKE_CURRENT_SOURCE_DIR}/opencv/sdk/native/libs/${ANDROID_ABI}/libopencv_java4.so)
+set(OpenCV_DIR ${CMAKE_CURRENT_SOURCE_DIR}/opencv/sdk/native/jni)
+find_package(OpenCV REQUIRED opencv_core opencv_imgproc opencv_objdetect opencv_dnn)
 
 # set include
 include_directories(
         ${CMAKE_CURRENT_SOURCE_DIR}/qrcode/src
         ${CMAKE_CURRENT_SOURCE_DIR}/qrcode/include
-        #${CMAKE_CURRENT_SOURCE_DIR}/iconv/include
         ${CMAKE_CURRENT_SOURCE_DIR}/opencv/sdk/native/jni/include)
 
 # source code
@@ -40,6 +31,6 @@ add_library(${CMAKE_PROJECT_NAME} SHARED ${SRC_FILES} wechat_qr.cpp wechat_qr_na
 # find system support library
 find_library(log-lib log)
 
-# target link libraries turbojpeg
-target_link_libraries(${CMAKE_PROJECT_NAME} ${log-lib} opencv)
-        #opencv_core opencv_imgproc opencv_objdetect opencv_dnn)
+# target link libraries opencv
+target_link_libraries(${CMAKE_PROJECT_NAME} ${log-lib}
+        opencv_core opencv_imgproc opencv_objdetect opencv_dnn)

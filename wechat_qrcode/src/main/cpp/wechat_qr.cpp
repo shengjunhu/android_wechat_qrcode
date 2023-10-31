@@ -3,6 +3,8 @@
 //
 
 #include "wechat_qr.h"
+#include <opencv2/imgproc.hpp>
+#include <opencv2/imgproc/types_c.h>
 
 wechat_qr::wechat_qr(const std::string& proto,  const std::string& model,
                      const std::string& proto2, const std::string& model2)
@@ -17,7 +19,7 @@ wechat_qr::wechat_qr(const std::string& proto,  const std::string& model,
 wechat_qr::~wechat_qr()
 {
     delete qr;
-    std::vector<float>().swap(points);
+    std::vector<cv::Mat>().swap(points);
     std::vector<std::string>().swap(codes);
 }
 

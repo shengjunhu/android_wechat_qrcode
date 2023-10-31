@@ -1,84 +1,62 @@
 package android.wechat.qrcode.demo;
 
 import android.Manifest;
-import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.net.Uri;
+import android.hardware.Camera;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.provider.MediaStore;
+import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.wechat.qrcode.QRResolver;
-import android.widget.ImageView;
-import android.widget.RadioGroup;
-
+import android.widget.TextView;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+import androidx.annotation.WorkerThread;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @Author:Hsj
  * @Date:2023/10/27
- * @Class:MainActivity
+ * @Class:CameraActivity
  * @Desc:
  */
+@SuppressWarnings("deprecation")
 public final class CameraActivity extends AppCompatActivity {
 
-    private static final String TAG = "MainActivity";
-    private static final int REQUEST_CODE1 = 0x01;
-    private static final int REQUEST_CODE2 = 0x02;
-
+    private static final String TAG = "CameraActivity";
+    private static final int REQUEST_CODE = 0x02;
     private Handler workHandler;
     private QRResolver resolver;
+    private TextView tv_tips;
     private SurfaceView sv;
-    private ImageView iv;
+    private BoxView box;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera);
-        RadioGroup rg = findViewById(R.id.rg);
-        rg.setOnCheckedChangeListener((group, checkedId) -> select(checkedId));
-        rg.check(R.id.rb_camera);
 
-        iv = findViewById(R.id.iv);
         sv = findViewById(R.id.sv);
+        box = findViewById(R.id.box);
+        tv_tips = findViewById(R.id.tv_tips);
+
         resolver = new QRResolver(getBaseContext());
         HandlerThread thread = new HandlerThread("thread_work");
         thread.start();
         workHandler = new Handler(thread.getLooper());
-    }
+        isRunning = new AtomicBoolean(false);
 
-    private void select(int id) {
-        if (id == R.id.rb_camera) {
-            selectCamera();
-        } else {
-            selectImage();
-        }
-    }
-
-    private void selectCamera() {
         if (ActivityCompat.checkSelfPermission(this,
                 Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-            openCamera();
+            addCallback();
         } else {
             ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.CAMERA}, REQUEST_CODE1);
-        }
-    }
-
-    private void selectImage() {
-        if (ActivityCompat.checkSelfPermission(this,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-            openDCIM();
-        } else {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_CODE2);
+                    new String[]{Manifest.permission.CAMERA}, REQUEST_CODE);
         }
     }
 
@@ -86,46 +64,108 @@ public final class CameraActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode,
                                            @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
-        if (requestCode == REQUEST_CODE1) {
-            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) openCamera();
-        } else if (requestCode == REQUEST_CODE2) {
-            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) openDCIM();
-        }
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_CODE2 && resultCode == RESULT_OK && data != null) {
-            Uri uri = data.getData();
-            if (uri == null) return;
-            String[] filePathColumn = { MediaStore.Images.Media.DATA };
-            Cursor cursor = getContentResolver().query(uri, filePathColumn,
-                    null, null, null);
-            if (cursor == null) return;
-            cursor.moveToFirst();
-            int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
-            String path = cursor.getString(columnIndex);
-            cursor.close();
-            showImage(path);
+        if (requestCode == REQUEST_CODE && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            addCallback();
         }
     }
 
 //==================================================================================================
 
-    private void openDCIM() {
-        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        startActivityForResult(intent, REQUEST_CODE2);
+    private AtomicBoolean isRunning;
+    private volatile int length;
+    private volatile int height;
+    private volatile int width;
+    private ByteBuffer img;
+    private Camera camera;
+
+    private void addCallback() {
+        sv.getHolder().addCallback(new SurfaceHolder.Callback() {
+            @Override
+            public void surfaceCreated(SurfaceHolder holder) {
+                openCamera(holder);
+            }
+
+            @Override
+            public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+
+            }
+
+            @Override
+            public void surfaceDestroyed(SurfaceHolder holder) {
+                closeCamera();
+            }
+        });
     }
 
-    private void showImage(String path) {
-        Bitmap bitmap = BitmapFactory.decodeFile(path);
-        iv.setImageBitmap(bitmap);
+    private void closeCamera() {
+        if (camera != null) {
+            try {
+                camera.setPreviewCallback(null);
+                camera.stopPreview();
+                camera.release();
+                camera = null;
+            } catch (RuntimeException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
-    private void openCamera() {
+    private void openCamera(SurfaceHolder holder) {
+        try {
+            camera = Camera.open(0);
+            Camera.Parameters param = camera.getParameters();
+            param.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
+            Camera.Size size = param.getPreviewSize();
+            camera.setParameters(param);
 
+            width = size.width;
+            height = size.height;
+            length = width * height;
+            box.setSize(width, height);
+            img = ByteBuffer.allocateDirect(length);
+
+            camera.setPreviewDisplay(holder);
+            camera.setPreviewCallback(callback);
+            camera.startPreview();
+        } catch (Exception e) {
+            tv_tips.setText(e.getMessage());
+        }
+        isRunning.set(false);
     }
 
+    private final Camera.PreviewCallback callback = new Camera.PreviewCallback() {
+        @Override
+        public void onPreviewFrame(byte[] data, Camera camera) {
+            if (!isRunning.get()) {
+                isRunning.set(true);
+                img.clear();
+                img.put(data, 0, length);
+                workHandler.post(()->decodeQR(img));
+            }
+        }
+    };
+
+//==================================================================================================
+
+    private List<String> codes = new ArrayList<>();
+    private List<Float> points = new ArrayList<>();
+
+    @WorkerThread
+    private void decodeQR(ByteBuffer data) {
+        int num = resolver.decodeY8(data, width, height, codes, points);
+        StringBuilder sb = new StringBuilder();
+        if (num > 0) {
+            box.drawBox(points);
+            for (int i = 0; i < num; ++i) {
+                sb.append(codes.get(i)).append("\n");
+            }
+        } else {
+            sb.append("result: ").append(num);
+        }
+        runOnUiThread(()-> tv_tips.setText(sb.toString()));
+        isRunning.set(false);
+    }
+
+//==================================================================================================
 
 }

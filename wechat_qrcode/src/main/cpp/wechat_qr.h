@@ -39,13 +39,13 @@ public:
     explicit wechat_qr(const std::string& model,  const std::string& proto,
                        const std::string& model2, const std::string& proto2);
     ~wechat_qr();
-    std::vector<float> get_points(){ return points; };
+    std::vector<cv::Mat> get_points(){ return points; };
     std::vector<std::string> get_codes(){ return codes; };
     int decode(const uint8_t* img, const int width, const int height, const int format);
 private:
     cv::wechat_qrcode::WeChatQRCode* qr;
     std::vector<std::string> codes;
-    std::vector<float> points;
+    std::vector<cv::Mat> points;
 };
 
 #endif //ANDROID_WECHAT_QRCODE_WECHAT_QR_H

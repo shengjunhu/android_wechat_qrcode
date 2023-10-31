@@ -31,17 +31,22 @@
             android:launchMode="singleTop"
             android:screenOrientation="user"
             android:windowSoftInputMode="stateAlwaysHidden">
-            <intent-filter>
+            <!--<intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+            </intent-filter>-->
         </activity>
 
         <activity android:name=".CameraActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation|navigation|keyboard|keyboardHidden"
             android:launchMode="singleTop"
             android:screenOrientation="user"
-            android:windowSoftInputMode="stateAlwaysHidden"/>
+            android:windowSoftInputMode="stateAlwaysHidden" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
 
     </application>
 

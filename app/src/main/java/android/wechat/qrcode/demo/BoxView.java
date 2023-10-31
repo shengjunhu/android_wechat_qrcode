@@ -72,7 +72,7 @@ public final class BoxView extends View {
     }
 
     @WorkerThread
-    public void drawBox(List<String> codes, List<Float> pts) {
+    public void drawBox(List<Float> pts) {
         points.clear();
         len = pts.size();
         for (int i = 0; i < len;) {

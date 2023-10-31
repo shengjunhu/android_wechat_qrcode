@@ -6,11 +6,15 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.wechat.qrcode.QRResolver;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -38,7 +42,7 @@ public final class ImageActivity extends AppCompatActivity {
 
     private Handler workHandler;
     private QRResolver resolver;
-    private TextView tv_result;
+    private TextView tv_tips;
     private ImageView iv;
 
     @Override
@@ -47,7 +51,7 @@ public final class ImageActivity extends AppCompatActivity {
         setContentView(R.layout.activity_image);
 
         iv = findViewById(R.id.iv);
-        tv_result = findViewById(R.id.tv_result);
+        tv_tips = findViewById(R.id.tv_tips);
         resolver = new QRResolver(getBaseContext());
         HandlerThread thread = new HandlerThread("thread_work");
         thread.start();
@@ -92,8 +96,8 @@ public final class ImageActivity extends AppCompatActivity {
 
 //==================================================================================================
 
-    private List<String> codes = new ArrayList<>(5);
-    private List<Float> points = new ArrayList<>(40);
+    private List<String> codes = new ArrayList<>();
+    private List<Float> points = new ArrayList<>();
 
     private void selectImage() {
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
@@ -106,31 +110,8 @@ public final class ImageActivity extends AppCompatActivity {
             iv.setImageBitmap(bitmap);
             workHandler.post(()->decodeQR(bitmap));
         } else {
-            tv_result.setText(String.format("read %s failed.", path));
+            tv_tips.setText(String.format("read %s failed.", path));
         }
-    }
-
-    private byte[] readFile(String file) {
-        byte[] data = null;
-        if (file != null) {
-            RandomAccessFile raf = null;
-            try {
-                raf = new RandomAccessFile(file, "r");
-                data = new byte[(int) raf.length()];
-                raf.readFully(data);
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                if (raf != null) {
-                    try {
-                        raf.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
-        return data;
     }
 
     @WorkerThread
@@ -142,7 +123,24 @@ public final class ImageActivity extends AppCompatActivity {
         bitmap.copyPixelsToBuffer(buffer);
         buffer.clear();
         int num = resolver.decodeRGBA(buffer, width, height, codes, points);
-        Bitmap copy = bitmap.copy(Bitmap.Config.ARGB_8888, true);
-        runOnUiThread(()-> tv_result.setText(String.valueOf(num)));
+        StringBuilder sb = new StringBuilder();
+        if (num > 0) {
+            Bitmap copy = bitmap.copy(Bitmap.Config.ARGB_8888, true);
+            Canvas canvas = new Canvas(copy);
+            Paint paint = new Paint();
+            paint.setColor(Color.GREEN);
+            for (int i = 0; i < num; ++i) {
+                int j = i * 8;
+                sb.append(codes.get(i)).append("\n");
+                canvas.drawLine(points.get(j),   points.get(j+1), points.get(j+2), points.get(j+3), paint);
+                canvas.drawLine(points.get(j+2), points.get(j+3), points.get(j+4), points.get(j+5), paint);
+                canvas.drawLine(points.get(j+4), points.get(j+5), points.get(j+6), points.get(j+7), paint);
+                canvas.drawLine(points.get(j+6), points.get(j+7), points.get(j),   points.get(j+1), paint);
+            }
+            runOnUiThread(()-> iv.setImageBitmap(copy));
+        } else {
+            sb.append("result: ").append(num);
+        }
+        runOnUiThread(()-> tv_tips.setText(sb.toString()));
     }
 }
