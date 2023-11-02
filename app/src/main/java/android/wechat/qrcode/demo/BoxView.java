@@ -19,10 +19,10 @@ import java.util.List;
 public final class BoxView extends View {
 
     private static final String TAG = "BoxView";
-    private Paint paint;
-    private int width, height;
-    private int frameW, frameH;
+    private int frameW, frameH, rotate;
     private float scaleX, scaleY;
+    private int width, height;
+    private final Paint paint;
     private List<Float> points;
     private int len;
 
@@ -47,10 +47,14 @@ public final class BoxView extends View {
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
-        this.width = w;
-        this.height = h;
-        if (frameW != 0) scaleX = 1.00f * w / frameW;
-        if (frameH != 0) scaleY = 1.00f * h / frameH;
+        this.width = w; this.height = h;
+        if (rotate % 180 == 0) {
+            if (frameW != 0) scaleX = 1.00f * w / frameW;
+            if (frameH != 0) scaleY = 1.00f * h / frameH;
+        } else {
+            if (frameH != 0) scaleX = 1.00f * w / frameH;
+            if (frameW != 0) scaleY = 1.00f * h / frameW;
+        }
     }
 
     @Override
@@ -64,11 +68,17 @@ public final class BoxView extends View {
         }
     }
 
-    public void setSize(int frameW, int frameH) {
+    public void setSize(int frameW, int frameH, int rotate) {
         this.frameW = frameW;
         this.frameH = frameH;
-        if (width  != 0) scaleX = 1.0f * width  / frameW;
-        if (height != 0) scaleY = 1.0f * height / frameH;
+        this.rotate = rotate;
+        if (rotate % 180 == 0) {
+            if (width  != 0) scaleX = 1.00f * width  / frameW;
+            if (height != 0) scaleY = 1.00f * height / frameH;
+        } else {
+            if (width  != 0) scaleX = 1.00f * width  / frameH;
+            if (height != 0) scaleY = 1.00f * height / frameW;
+        }
     }
 
     @WorkerThread
@@ -76,8 +86,22 @@ public final class BoxView extends View {
         points.clear();
         len = pts.size();
         for (int i = 0; i < len;) {
-            this.points.add(pts.get(i++) * scaleX);
-            this.points.add(pts.get(i++) * scaleY);
+            float x = pts.get(i++);
+            float y = pts.get(i++);
+            if (rotate == 90) {
+                float t = x ;
+                x = frameH - y;
+                y = t;
+            } else if (rotate == 180) {
+                x = frameW - x;
+                y = frameH - y;
+            } else if (rotate == 270) {
+                float t = y ;
+                y = frameW - x;
+                x = t;
+            }
+            this.points.add(x * scaleX);
+            this.points.add(y * scaleY);
         }
         postInvalidate();
     }

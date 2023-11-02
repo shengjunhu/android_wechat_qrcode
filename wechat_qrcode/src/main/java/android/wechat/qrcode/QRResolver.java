@@ -88,7 +88,7 @@ public final class QRResolver {
             ret = ERROR_INIT;
             Log.e(TAG, "decodeY8: QRResolver init error.");
         } else {
-            codes.clear(); points.clear();
+            codes.clear(); points.clear(); img.clear();
             ret = decode2(handle, img, width, height, CV_8UC1, codes, points);
         }
         return ret;
@@ -124,7 +124,7 @@ public final class QRResolver {
             ret = ERROR_INIT;
             Log.e(TAG, "decodeY8: QRResolver init error.");
         } else {
-            codes.clear(); points.clear();
+            codes.clear(); points.clear(); img.clear();
             ret = decode2(handle, img, width, height, CV_8UC3, codes, points);
         }
         return ret;
@@ -160,7 +160,7 @@ public final class QRResolver {
             ret = ERROR_INIT;
             Log.e(TAG, "decodeImg: QRResolver init error.");
         } else {
-            codes.clear(); points.clear();
+            codes.clear(); points.clear(); img.clear();
             ret = decode2(handle, img, width, height, CV_8UC4, codes, points);
         }
         return ret;

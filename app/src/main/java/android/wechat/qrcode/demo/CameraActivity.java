@@ -2,10 +2,13 @@ package android.wechat.qrcode.demo;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.graphics.ImageFormat;
 import android.hardware.Camera;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.util.Log;
+import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.wechat.qrcode.QRResolver;
@@ -14,7 +17,12 @@ import androidx.annotation.NonNull;
 import androidx.annotation.WorkerThread;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -100,7 +108,6 @@ public final class CameraActivity extends AppCompatActivity {
     private void closeCamera() {
         if (camera != null) {
             try {
-                camera.setPreviewCallback(null);
                 camera.stopPreview();
                 camera.release();
                 camera = null;
@@ -112,19 +119,22 @@ public final class CameraActivity extends AppCompatActivity {
 
     private void openCamera(SurfaceHolder holder) {
         try {
-            camera = Camera.open(0);
+            camera = Camera.open();
             Camera.Parameters param = camera.getParameters();
-            param.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
+            param.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
             Camera.Size size = param.getPreviewSize();
+            param.setPictureFormat(ImageFormat.NV21);
+            camera.setPreviewDisplay(holder);
+            camera.setDisplayOrientation(90);
             camera.setParameters(param);
 
             width = size.width;
             height = size.height;
             length = width * height;
-            box.setSize(width, height);
+            // Display rotate 90. (0, 90, 180, 270)
+            box.setSize(width, height, 90);
             img = ByteBuffer.allocateDirect(length);
 
-            camera.setPreviewDisplay(holder);
             camera.setPreviewCallback(callback);
             camera.startPreview();
         } catch (Exception e) {
@@ -154,8 +164,8 @@ public final class CameraActivity extends AppCompatActivity {
     private void decodeQR(ByteBuffer data) {
         int num = resolver.decodeY8(data, width, height, codes, points);
         StringBuilder sb = new StringBuilder();
+        box.drawBox(points);
         if (num > 0) {
-            box.drawBox(points);
             for (int i = 0; i < num; ++i) {
                 sb.append(codes.get(i)).append("\n");
             }
@@ -165,7 +175,5 @@ public final class CameraActivity extends AppCompatActivity {
         runOnUiThread(()-> tv_tips.setText(sb.toString()));
         isRunning.set(false);
     }
-
-//==================================================================================================
 
 }
