@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">QR</string>
-    <string name="scan_qr_by_camera">Scan QR by Camera</string>
-    <string name="scan_qr_by_image">Scan QR by Image</string>
+    <string name="image">Image</string>
+    <string name="camera">Camera</string>
+    <string name="access_image_failed">Can\'t access image.</string>
+    <string name="select_image_none">Select image none.</string>
 </resources>

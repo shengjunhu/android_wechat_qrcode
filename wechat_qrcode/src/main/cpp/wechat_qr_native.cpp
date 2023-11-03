@@ -48,7 +48,7 @@ static HANDLE_ID create(JNIEnv *env, jobject thiz,
 
 static jint decode1(JNIEnv *env, jobject thiz, HANDLE_ID id,
         jbyteArray img, jint width, jint height, jint format,
-        jobject codes, jobject points)
+        jfloat scale, jobject codes, jobject points)
 {
     jint ret = ERROR_ARG;
     auto *qr = reinterpret_cast<wechat_qr *>(id);
@@ -61,7 +61,7 @@ static jint decode1(JNIEnv *env, jobject thiz, HANDLE_ID id,
         LOGE("decode: points is null.");
     } else {
         jbyte* _img = env->GetByteArrayElements(img, JNI_FALSE);
-        ret = qr-> decode((const uint8_t *)_img, width, height, format);
+        ret = qr-> decode((const uint8_t *)_img, width, height, format, scale);
         env->ReleaseByteArrayElements(img, _img, JNI_ABORT);
         if (ret > 0) {
             // set points and codes
@@ -88,7 +88,7 @@ static jint decode1(JNIEnv *env, jobject thiz, HANDLE_ID id,
 
 static jint decode2(JNIEnv *env, jobject thiz, HANDLE_ID id,
         jobject img, jint width, jint height, jint format,
-        jobject codes, jobject points)
+        jfloat scale, jobject codes, jobject points)
 {
     jint ret = ERROR_ARG;
     auto *qr = reinterpret_cast<wechat_qr *>(id);
@@ -101,7 +101,7 @@ static jint decode2(JNIEnv *env, jobject thiz, HANDLE_ID id,
         LOGE("decode: points is null.");
     } else {
         auto _img = (const uint8_t *)env->GetDirectBufferAddress(img);
-        ret = qr-> decode(_img, width, height, format);
+        ret = qr-> decode(_img, width, height, format, scale);
         if (ret > 0) {
             // set points and codes
             std::vector<std::string> _codes = qr->get_codes();
@@ -163,8 +163,8 @@ static void destroy(JNIEnv *env, jobject thiz, HANDLE_ID id)
 
 static const JNINativeMethod NATIVE_METHODS[] = {
         {"create",  "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)J",  (void *) create},
-        {"decode1", "(J[BIIILjava/util/List;Ljava/util/List;)I",                                    (void *) decode1},
-        {"decode2", "(JLjava/nio/ByteBuffer;IIILjava/util/List;Ljava/util/List;)I",                 (void *) decode2},
+        {"decode1", "(J[BIIIFLjava/util/List;Ljava/util/List;)I",                                   (void *) decode1},
+        {"decode2", "(JLjava/nio/ByteBuffer;IIIFLjava/util/List;Ljava/util/List;)I",                (void *) decode2},
         {"destroy", "(J)V",                                                                         (void *) destroy}
 };
 

@@ -56,7 +56,7 @@ android {
 
     applicationVariants.all { variant ->
         variant.outputs.all {
-            outputFileName = "android_wechat_qr_v${variant.versionCode}.apk"
+            outputFileName = "android_wechat_qrcode.apk"
         }
     }
 
@@ -70,7 +70,8 @@ repositories {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation rootProject.ext.dependencies.appcompat
     implementation rootProject.ext.dependencies.core
+    implementation rootProject.ext.dependencies.appcompat
+    implementation rootProject.ext.dependencies.material
     implementation project(path: ':wechat_qrcode')
 }

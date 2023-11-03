@@ -41,7 +41,7 @@ public:
     ~wechat_qr();
     std::vector<cv::Mat> get_points(){ return points; };
     std::vector<std::string> get_codes(){ return codes; };
-    int decode(const uint8_t* img, const int width, const int height, const int format);
+    int decode(const uint8_t* img, const int width, const int height, const int format, const float scale);
 private:
     cv::wechat_qrcode::WeChatQRCode* qr;
     std::vector<std::string> codes;

@@ -23,11 +23,12 @@ wechat_qr::~wechat_qr()
     std::vector<std::string>().swap(codes);
 }
 
-int wechat_qr::decode(const uint8_t* img, const int width, const int height, const int format)
+int wechat_qr::decode(const uint8_t* img, const int width, const int height, const int format, const float scale)
 {
     codes.clear();
     points.clear();
     try {
+        qr->setScaleFactor(scale);
         cv::Mat image(height, width, format, (void *)img);
         codes = qr->detectAndDecode(image, points);
     } catch (const std::exception& e) {

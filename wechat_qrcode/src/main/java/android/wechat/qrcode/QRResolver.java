@@ -19,25 +19,25 @@ import java.util.List;
  */
 public final class QRResolver {
 
-    private static final String TAG    = "QRResolver";
-    private static final String DIR    = "qr";
-    private static final String PROTO1 = "qr/detect.prototxt";
-    private static final String MODEL1 = "qr/detect.caffemodel";
-    private static final String PROTO2 = "qr/sr.prototxt";
-    private static final String MODEL2 = "qr/sr.caffemodel";
+    private static final String TAG      = "QRResolver";
+    private static final String DIR      = "qr";
+    private static final String PROTO1   = "qr/detect.prototxt";
+    private static final String MODEL1   = "qr/detect.caffemodel";
+    private static final String PROTO2   = "qr/sr.prototxt";
+    private static final String MODEL2   = "qr/sr.caffemodel";
     private static final int MODEL1_SIZE = 965430;
     private static final int PROTO1_SIZE = 45372;
     private static final int MODEL2_SIZE = 23929;
     private static final int PROTO2_SIZE = 6387;
 
-    public static final int CV_8UC1    =  0x00;
-    public static final int CV_8UC3    =  0x10;
-    public static final int CV_8UC4    =  0x18;
+    public static final int CV_8UC1      =  0x00;
+    public static final int CV_8UC3      =  0x10;
+    public static final int CV_8UC4      =  0x18;
 
-    public static final int STATE_OK   =  0x00;
-    public static final int ERROR_EXE  = -0x01;
-    public static final int ERROR_ARG  = -0x02;
-    public static final int ERROR_INIT = -0x03;
+    public static final int STATE_OK     =  0x00;
+    public static final int ERROR_EXE    = -0x01;
+    public static final int ERROR_ARG    = -0x02;
+    public static final int ERROR_INIT   = -0x03;
 
     public QRResolver(Context context) {
         if (context == null) throw new NullPointerException("QRResolver: Context is null.");
@@ -58,7 +58,7 @@ public final class QRResolver {
         }
     }
 
-    public int decodeY8(byte[] img, int width, int height, List<String> codes, List<Float> points) {
+    public int decodeY8(byte[] img, int width, int height, float scale, List<String> codes, List<Float> points) {
         int ret = ERROR_ARG;
         if (codes == null) {
             Log.e(TAG, "decodeY8: codes is null.");
@@ -71,12 +71,12 @@ public final class QRResolver {
             Log.e(TAG, "decodeY8: QRResolver init error.");
         } else {
             codes.clear(); points.clear();
-            ret = decode1(handle, img, width, height, CV_8UC1, codes, points);
+            ret = decode1(handle, img, width, height, CV_8UC1, scale, codes, points);
         }
         return ret;
     }
 
-    public int decodeY8(ByteBuffer img, int width, int height, List<String> codes, List<Float> points) {
+    public int decodeY8(ByteBuffer img, int width, int height, float scale, List<String> codes, List<Float> points) {
         int ret = ERROR_ARG;
         if (codes == null) {
             Log.e(TAG, "decodeY8: codes is null.");
@@ -89,12 +89,12 @@ public final class QRResolver {
             Log.e(TAG, "decodeY8: QRResolver init error.");
         } else {
             codes.clear(); points.clear(); img.clear();
-            ret = decode2(handle, img, width, height, CV_8UC1, codes, points);
+            ret = decode2(handle, img, width, height, CV_8UC1, scale, codes, points);
         }
         return ret;
     }
 
-    public int decodeRGB(byte[] img, int width, int height, List<String> codes, List<Float> points) {
+    public int decodeRGB(byte[] img, int width, int height, float scale, List<String> codes, List<Float> points) {
         int ret = ERROR_ARG;
         if (codes == null) {
             Log.e(TAG, "decodeY8: codes is null.");
@@ -107,12 +107,12 @@ public final class QRResolver {
             Log.e(TAG, "decodeY8: QRResolver init error.");
         } else {
             codes.clear(); points.clear();
-            ret = decode1(handle, img, width, height, CV_8UC3, codes, points);
+            ret = decode1(handle, img, width, height, CV_8UC3, scale, codes, points);
         }
         return ret;
     }
 
-    public int decodeRGB(ByteBuffer img, int width, int height, List<String> codes, List<Float> points) {
+    public int decodeRGB(ByteBuffer img, int width, int height, float scale, List<String> codes, List<Float> points) {
         int ret = ERROR_ARG;
         if (codes == null) {
             Log.e(TAG, "decodeY8: codes is null.");
@@ -125,12 +125,12 @@ public final class QRResolver {
             Log.e(TAG, "decodeY8: QRResolver init error.");
         } else {
             codes.clear(); points.clear(); img.clear();
-            ret = decode2(handle, img, width, height, CV_8UC3, codes, points);
+            ret = decode2(handle, img, width, height, CV_8UC3, scale, codes, points);
         }
         return ret;
     }
 
-    public int decodeRGBA(byte[] img, int width, int height, List<String> codes, List<Float> points) {
+    public int decodeRGBA(byte[] img, int width, int height, float scale, List<String> codes, List<Float> points) {
         int ret = ERROR_ARG;
         if (codes == null) {
             Log.e(TAG, "decodeY8: codes is null.");
@@ -143,12 +143,12 @@ public final class QRResolver {
             Log.e(TAG, "decodeY8: QRResolver init error.");
         } else {
             codes.clear(); points.clear();
-            ret = decode1(handle, img, width, height, CV_8UC4, codes, points);
+            ret = decode1(handle, img, width, height, CV_8UC4, scale, codes, points);
         }
         return ret;
     }
 
-    public int decodeRGBA(ByteBuffer img, int width, int height, List<String> codes, List<Float> points) {
+    public int decodeRGBA(ByteBuffer img, int width, int height, float scale, List<String> codes, List<Float> points) {
         int ret = ERROR_ARG;
         if (codes == null) {
             Log.e(TAG, "decodeImg: codes is null.");
@@ -161,7 +161,7 @@ public final class QRResolver {
             Log.e(TAG, "decodeImg: QRResolver init error.");
         } else {
             codes.clear(); points.clear(); img.clear();
-            ret = decode2(handle, img, width, height, CV_8UC4, codes, points);
+            ret = decode2(handle, img, width, height, CV_8UC4, scale, codes, points);
         }
         return ret;
     }
@@ -237,11 +237,11 @@ public final class QRResolver {
 
     private native int decode1(long handle,
                                byte[] data, int width, int height, int format,
-                               List<String> codes, List<Float> points);
+                               float scale, List<String> codes, List<Float> points);
 
     private native int decode2(long handle,
                                ByteBuffer data, int width, int height, int format,
-                               List<String> codes, List<Float> points);
+                               float scale, List<String> codes, List<Float> points);
 
     private native void destroy(long handle);
 
